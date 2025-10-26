@@ -27,7 +27,8 @@
 ## ✨ Features
 
 - ✅ Math calculation
-- ✅ Prepare SD card
+- ✅ Format SD card
+- ✅ Utility: validate command,...
 
 ---
 
