@@ -28,7 +28,9 @@
 
 - ✅ Math calculation
 - ✅ Format SD card
-- ✅ Utility: validate command,...
+- ✅ Utility
+  - validate command
+  - split large file to multiple compressed files
 
 ---
 
