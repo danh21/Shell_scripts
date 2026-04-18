@@ -30,6 +30,9 @@ git diff --cached --name-only --diff-filter=AM | while read -r file; do
 
 						# Run WinRAR to extract
 						"$WINRAR" a -m5 -v$VOLUME_SIZE -ep1 "$ARCHIVE_NAME" "$file"
+
+            echo "➕ Adding split files to git..."
+            git add "${FILE_DIR}"/*.part*.rar
 			
 						# remove origin file
             rm -f "$file"
