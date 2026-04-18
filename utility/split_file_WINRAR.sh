@@ -19,22 +19,28 @@ git diff --cached --name-only --diff-filter=AM | while read -r file; do
             echo "⏪ Removing '$file' from staging..."
             git restore --staged "$file"
 
-						# Name file output
-						BASENAME=$(basename "$file" | cut -d. -f1)
-
-            # Get folder containing origin file
             FILE_DIR=$(dirname "$file")
+            BASENAME=$(basename "$file")
+            NAMEONLY="${BASENAME%.*}"   # strip extension
 
-            # Create archive
-            ARCHIVE_NAME="${FILE_DIR}/${BASENAME%.*}.rar"
+            # Archive output path
+            ARCHIVE_NAME="${FILE_DIR}/${NAMEONLY}.rar"
 
-						# Run WinRAR to extract
-						"$WINRAR" a -m5 -v$VOLUME_SIZE -ep1 "$ARCHIVE_NAME" "$file"
+            # Run WinRAR to split
+            "$WINRAR" a -m5 -v$VOLUME_SIZE -ep1 "$ARCHIVE_NAME" "$file"
 
             echo "➕ Adding split files to git..."
-            git add "${FILE_DIR}"/*.part*.rar
-			
-						# remove origin file
+            # Case 1: split → filename.part1.rar, filename.part2.rar ...
+            # Case 2: single → filename.rar
+            # Add all .rar files matching the basename
+            find "$FILE_DIR" -maxdepth 1 \( \
+                -name "${NAMEONLY}.part*.rar" \
+                -o -name "${NAMEONLY}.rar" \
+            \) | while read -r rar_file; do
+                git add "$rar_file"
+                echo "  ✅ Added: $rar_file"
+            done
+
             rm -f "$file"
         fi
     fi
