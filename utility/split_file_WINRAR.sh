@@ -21,22 +21,22 @@ git diff --cached --name-only --diff-filter=AM | while read -r file; do
 
             FILE_DIR=$(dirname "$file")
             BASENAME=$(basename "$file")
-            NAMEONLY="${BASENAME%.*}"   # strip extension
-
-            # Archive output path
+            NAMEONLY="${BASENAME%.*}"
             ARCHIVE_NAME="${FILE_DIR}/${NAMEONLY}.rar"
 
-            # Run WinRAR to split
+            # Snapshot .rar files BEFORE compression
+            before=$(find "$FILE_DIR" -maxdepth 1 -type f -name "*.rar" | sort)
+
+            # Run WinRAR
             "$WINRAR" a -m5 -v$VOLUME_SIZE -ep1 "$ARCHIVE_NAME" "$file"
 
+            # Snapshot .rar files AFTER compression
+            after=$(find "$FILE_DIR" -maxdepth 1 -type f -name "*.rar" | sort)
+
             echo "➕ Adding split files to git..."
-            # Case 1: split → filename.part1.rar, filename.part2.rar ...
-            # Case 2: single → filename.rar
-            # Add all .rar files matching the basename
-            find "$FILE_DIR" -maxdepth 1 \( \
-                -name "${NAMEONLY}.part*.rar" \
-                -o -name "${NAMEONLY}.rar" \
-            \) | while read -r rar_file; do
+
+            # Add ONLY newly created .rar files (diff before vs after)
+            comm -13 <(echo "$before") <(echo "$after") | while read -r rar_file; do
                 git add "$rar_file"
                 echo "  ✅ Added: $rar_file"
             done
